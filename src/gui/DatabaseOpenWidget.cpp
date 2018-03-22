@@ -173,6 +173,9 @@ void DatabaseOpenWidget::openDatabase()
         return;
     }
 
+    m_ui->editPassword->setShowPassword(false);
+    QCoreApplication::processEvents();
+
     QFile file(m_filename);
     if (!file.open(QIODevice::ReadOnly)) {
         m_ui->messageWidget->showMessage(
@@ -214,7 +217,7 @@ QSharedPointer<CompositeKey> DatabaseOpenWidget::databaseKey()
         QString keyFilename = m_ui->comboKeyFile->currentText();
         QString errorMsg;
         if (!key.load(keyFilename, &errorMsg)) {
-            m_ui->messageWidget->showMessage(tr("Can't open key file").append(":\n").append(errorMsg),
+            m_ui->messageWidget->showMessage(tr("Can't open key file:\n%1").arg(errorMsg),
                                              MessageWidget::Error);
             return QSharedPointer<CompositeKey>();
         }

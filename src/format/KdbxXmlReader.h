@@ -80,6 +80,7 @@ protected:
     virtual TimeInfo parseTimes();
 
     virtual QString readString();
+    virtual QString readString(bool& isProtected, bool& protectInMemory);
     virtual bool readBool();
     virtual QDateTime readDateTime();
     virtual QColor readColor();
@@ -93,6 +94,7 @@ protected:
     virtual Group* getGroup(const QUuid& uuid);
     virtual Entry* getEntry(const QUuid& uuid);
 
+    virtual bool isTrueValue(const QStringRef& value);
     virtual void raiseError(const QString& errorMessage);
 
     const quint32 m_kdbxVersion;

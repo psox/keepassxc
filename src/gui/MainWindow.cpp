@@ -198,6 +198,7 @@ MainWindow::MainWindow()
 #endif
 #ifdef WITH_XC_SSHAGENT
     SSHAgent::init(this);
+    connect(SSHAgent::instance(), SIGNAL(error(QString)), this, SLOT(showErrorMessage(QString)));
     m_ui->settingsWidget->addSettingsPage(new AgentSettingsPage(m_ui->tabWidget));
 #endif
 
@@ -454,6 +455,11 @@ void MainWindow::showKeePassHTTPDeprecationNotice()
     disconnect(m_ui->globalMessageWidget, SIGNAL(hideAnimationFinished()), this, SLOT(showKeePassHTTPDeprecationNotice()));
 }
 
+void MainWindow::showErrorMessage(const QString& message)
+{
+    m_ui->globalMessageWidget->showMessage(message, MessageWidget::Error);
+}
+
 void MainWindow::appExit()
 {
     m_appExitCalled = true;
@@ -493,6 +499,7 @@ void MainWindow::updateCopyAttributesMenu()
     const QStringList customEntryAttributes = dbWidget->customEntryAttributes();
     for (const QString& key : customEntryAttributes) {
         QAction* action = m_ui->menuEntryCopyAttribute->addAction(key);
+        action->setData(QVariant(key));
         m_copyAdditionalAttributeActions->addAction(action);
     }
 }
@@ -666,7 +673,7 @@ void MainWindow::updateWindowTitle()
             customWindowTitlePart.remove(customWindowTitlePart.size() - 1, 1);
         }
         if (m_ui->tabWidget->readOnly(tabWidgetIndex)) {
-            customWindowTitlePart.append(QString(" [%1]").arg(tr("read-only")));
+            customWindowTitlePart = tr("%1 [read-only]", "window title modifier").arg(customWindowTitlePart);
         }
         m_ui->actionDatabaseSave->setEnabled(m_ui->tabWidget->canSave(tabWidgetIndex));
     } else if (stackedWidgetIndex == 1) {
@@ -892,7 +899,7 @@ void MainWindow::updateTrayIcon()
 
             m_trayIcon->setContextMenu(menu);
             
-            m_trayIcon->setIcon(filePath()->applicationIcon());
+            m_trayIcon->setIcon(filePath()->trayIcon());
             m_trayIcon->show();
         }
         if (m_ui->tabWidget->hasLockableDatabases()) {
@@ -964,7 +971,11 @@ void MainWindow::trayIconTriggered(QSystemTrayIcon::ActivationReason reason)
 void MainWindow::hideWindow()
 {
     saveWindowInformation();
-#ifndef Q_OS_MAC
+#if !defined(Q_OS_LINUX) && !defined(Q_OS_MAC)
+    // On some Linux systems, the window should NOT be minimized and hidden (i.e. not shown), at
+    // the same time (which would happen if both minimize on startup and minimize to tray are set)
+    // since otherwise it causes problems on restore as seen on issue #1595. Hiding it is enough.
+    // TODO: Add an explanation for why this is also not done on Mac (or remove the check)
     setWindowState(windowState() | Qt::WindowMinimized);
 #endif
     QTimer::singleShot(0, this, SLOT(hide()));
@@ -976,7 +987,7 @@ void MainWindow::hideWindow()
 
 void MainWindow::toggleWindow()
 {
-    if ((QApplication::activeWindow() == this) && isVisible() && !isMinimized()) {
+    if (isVisible() && !isMinimized()) {
         hideWindow();
     } else {
         bringToFront();

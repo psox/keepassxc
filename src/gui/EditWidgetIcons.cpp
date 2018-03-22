@@ -197,12 +197,12 @@ QImage EditWidgetIcons::fetchFavicon(const QUrl& url)
         curl_easy_setopt(curl, CURLOPT_URL, baUrl.data());
         curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 5L);
         curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "curl");
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
         curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &imagedata);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &writeCurlResponse);
-        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 #ifdef Q_OS_WIN
         const QDir appDir = QFileInfo(QCoreApplication::applicationFilePath()).absoluteDir();
         if (appDir.exists("ssl\\certs")) {
@@ -305,9 +305,10 @@ void EditWidgetIcons::removeCustomIcon()
             int iconUseCount = entriesWithSameIcon.size() + groupsWithSameIcon.size();
             if (iconUseCount > 0) {
                 QMessageBox::StandardButton ans = MessageBox::question(this, tr("Confirm Delete"),
-                                     tr("This icon is used by %1 entries, and will be replaced "
-                                        "by the default icon. Are you sure you want to delete it?")
-                                     .arg(iconUseCount), QMessageBox::Yes | QMessageBox::No);
+                                     tr("This icon is used by %n entry(s), and will be replaced "
+                                        "by the default icon. Are you sure you want to delete it?",
+                                        "", iconUseCount),
+                                     QMessageBox::Yes | QMessageBox::No);
 
                 if (ans == QMessageBox::No) {
                     // Early out, nothing is changed

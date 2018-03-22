@@ -103,6 +103,7 @@ private slots:
 #ifdef WITH_XC_SSHAGENT
     void updateSSHAgent();
     void updateSSHAgentAttachment();
+    void updateSSHAgentAttachments();
     void updateSSHAgentKeyInfo();
     void browsePrivateKey();
     void addKeyToAgent();
@@ -128,7 +129,7 @@ private:
     QMenu* createPresetsMenu();
     void updateEntryData(Entry* entry) const;
 #ifdef WITH_XC_SSHAGENT
-    bool getOpenSSHKey(OpenSSHKey& key);
+    bool getOpenSSHKey(OpenSSHKey& key, bool decrypt = false);
     void saveSSHAgentConfig();
 #endif
 

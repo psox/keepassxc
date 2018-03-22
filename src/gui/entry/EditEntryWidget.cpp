@@ -281,6 +281,8 @@ void EditEntryWidget::setupSSHAgent()
     connect(m_sshAgentUi->decryptButton, SIGNAL(clicked()), SLOT(decryptPrivateKey()));
     connect(m_sshAgentUi->copyToClipboardButton, SIGNAL(clicked()), SLOT(copyPublicKey()));
 
+    connect(m_advancedUi->attachmentsWidget->entryAttachments(), SIGNAL(modified()), SLOT(updateAttachments()));
+
     addPage(tr("SSH Agent"), FilePath::instance()->icon("apps", "utilities-terminal"), m_sshAgentWidget);
 }
 
@@ -299,6 +301,27 @@ void EditEntryWidget::updateSSHAgent()
     m_sshAgentUi->removeFromAgentButton->setEnabled(false);
     m_sshAgentUi->copyToClipboardButton->setEnabled(false);
 
+    m_sshAgentSettings = settings;
+    updateSSHAgentAttachments();
+
+    if (settings.selectedType() == "attachment") {
+        m_sshAgentUi->attachmentRadioButton->setChecked(true);
+    } else {
+        m_sshAgentUi->externalFileRadioButton->setChecked(true);
+    }
+
+    updateSSHAgentKeyInfo();
+}
+
+void EditEntryWidget::updateSSHAgentAttachment()
+{
+    m_sshAgentUi->attachmentRadioButton->setChecked(true);
+    updateSSHAgentKeyInfo();
+}
+
+void EditEntryWidget::updateSSHAgentAttachments()
+{
+    m_sshAgentUi->attachmentComboBox->clear();
     m_sshAgentUi->attachmentComboBox->addItem("");
 
     auto attachments = m_advancedUi->attachmentsWidget->entryAttachments();
@@ -310,24 +333,8 @@ void EditEntryWidget::updateSSHAgent()
         m_sshAgentUi->attachmentComboBox->addItem(fileName);
     }
 
-    m_sshAgentUi->attachmentComboBox->setCurrentText(settings.attachmentName());
-    m_sshAgentUi->externalFileEdit->setText(settings.fileName());
-
-    if (settings.selectedType() == "attachment") {
-        m_sshAgentUi->attachmentRadioButton->setChecked(true);
-    } else {
-        m_sshAgentUi->externalFileRadioButton->setChecked(true);
-    }
-
-    m_sshAgentSettings = settings;
-
-    updateSSHAgentKeyInfo();
-}
-
-void EditEntryWidget::updateSSHAgentAttachment()
-{
-    m_sshAgentUi->attachmentRadioButton->setChecked(true);
-    updateSSHAgentKeyInfo();
+    m_sshAgentUi->attachmentComboBox->setCurrentText(m_sshAgentSettings.attachmentName());
+    m_sshAgentUi->externalFileEdit->setText(m_sshAgentSettings.fileName());
 }
 
 void EditEntryWidget::updateSSHAgentKeyInfo()
@@ -346,24 +353,32 @@ void EditEntryWidget::updateSSHAgentKeyInfo()
         return;
     }
 
-    m_sshAgentUi->fingerprintTextLabel->setText(key.fingerprint());
-
-    if (key.encrypted()) {
-        m_sshAgentUi->commentTextLabel->setText(tr("(encrypted)"));
-        m_sshAgentUi->decryptButton->setEnabled(true);
+    if (!key.fingerprint().isEmpty()) {
+        m_sshAgentUi->fingerprintTextLabel->setText(key.fingerprint());
     } else {
-        m_sshAgentUi->commentTextLabel->setText(key.comment());
+        m_sshAgentUi->fingerprintTextLabel->setText(tr("(encrypted)"));
     }
 
-    m_sshAgentUi->publicKeyEdit->document()->setPlainText(key.publicKey());
+    if (!key.comment().isEmpty() || !key.encrypted()) {
+        m_sshAgentUi->commentTextLabel->setText(key.comment());
+    } else {
+        m_sshAgentUi->commentTextLabel->setText(tr("(encrypted)"));
+        m_sshAgentUi->decryptButton->setEnabled(true);
+    }
+
+    if (!key.publicKey().isEmpty()) {
+        m_sshAgentUi->publicKeyEdit->document()->setPlainText(key.publicKey());
+        m_sshAgentUi->copyToClipboardButton->setEnabled(true);
+    } else {
+        m_sshAgentUi->publicKeyEdit->document()->setPlainText(tr("(encrypted)"));
+        m_sshAgentUi->copyToClipboardButton->setDisabled(true);
+    }
 
     // enable agent buttons only if we have an agent running
     if (SSHAgent::instance()->isAgentRunning()) {
         m_sshAgentUi->addToAgentButton->setEnabled(true);
         m_sshAgentUi->removeFromAgentButton->setEnabled(true);
     }
-
-    m_sshAgentUi->copyToClipboardButton->setEnabled(true);
 }
 
 void EditEntryWidget::saveSSHAgentConfig()
@@ -410,14 +425,18 @@ void EditEntryWidget::browsePrivateKey()
     }
 }
 
-bool EditEntryWidget::getOpenSSHKey(OpenSSHKey& key)
+bool EditEntryWidget::getOpenSSHKey(OpenSSHKey& key, bool decrypt)
 {
+    QString fileName;
     QByteArray privateKeyData;
 
     if (m_sshAgentUi->attachmentRadioButton->isChecked()) {
-        privateKeyData = m_advancedUi->attachmentsWidget->getAttachment(m_sshAgentUi->attachmentComboBox->currentText());
+        fileName = m_sshAgentUi->attachmentComboBox->currentText();
+        privateKeyData = m_advancedUi->attachmentsWidget->getAttachment(fileName);
     } else {
         QFile localFile(m_sshAgentUi->externalFileEdit->text());
+        QFileInfo localFileInfo(localFile);
+        fileName = localFileInfo.fileName();
 
         if (localFile.fileName().isEmpty()) {
             return false;
@@ -436,7 +455,7 @@ bool EditEntryWidget::getOpenSSHKey(OpenSSHKey& key)
         privateKeyData = localFile.readAll();
     }
 
-    if (privateKeyData.length() == 0) {
+    if (privateKeyData.isEmpty()) {
         return false;
     }
 
@@ -445,8 +464,19 @@ bool EditEntryWidget::getOpenSSHKey(OpenSSHKey& key)
         return false;
     }
 
+    if (key.encrypted() && (decrypt || key.publicKey().isEmpty())) {
+        if (!key.openPrivateKey(m_entry->password())) {
+            showMessage(key.errorString(), MessageWidget::Error);
+            return false;
+        }
+    }
+
     if (key.comment().isEmpty()) {
         key.setComment(m_entry->username());
+    }
+
+    if (key.comment().isEmpty()) {
+        key.setComment(fileName);
     }
 
     return true;
@@ -456,16 +486,12 @@ void EditEntryWidget::addKeyToAgent()
 {
     OpenSSHKey key;
 
-    if (!getOpenSSHKey(key)) {
+    if (!getOpenSSHKey(key, true)) {
         return;
     }
 
-    if (!key.openPrivateKey(m_entry->password())) {
-        showMessage(key.errorString(), MessageWidget::Error);
-    } else {
-        m_sshAgentUi->commentTextLabel->setText(key.comment());
-        m_sshAgentUi->publicKeyEdit->document()->setPlainText(key.publicKey());
-    }
+    m_sshAgentUi->commentTextLabel->setText(key.comment());
+    m_sshAgentUi->publicKeyEdit->document()->setPlainText(key.publicKey());
 
     quint32 lifetime = 0;
     bool confirm = m_sshAgentUi->requireUserConfirmationCheckBox->isChecked();
@@ -474,7 +500,10 @@ void EditEntryWidget::addKeyToAgent()
         lifetime = m_sshAgentUi->lifetimeSpinBox->value();
     }
 
-    SSHAgent::instance()->addIdentity(key, lifetime, confirm);
+    if (!SSHAgent::instance()->addIdentity(key, lifetime, confirm)) {
+        showMessage(SSHAgent::instance()->errorString(), MessageWidget::Error);
+        return;
+    }
 
     if (m_sshAgentUi->removeKeyFromAgentCheckBox->isChecked()) {
         SSHAgent::instance()->removeIdentityAtLock(key, m_entry->uuid());
@@ -485,8 +514,13 @@ void EditEntryWidget::removeKeyFromAgent()
 {
     OpenSSHKey key;
 
-    if (getOpenSSHKey(key)) {
-        SSHAgent::instance()->removeIdentity(key);
+    if (!getOpenSSHKey(key)) {
+        return;
+    }
+
+    if (!SSHAgent::instance()->removeIdentity(key)) {
+        showMessage(SSHAgent::instance()->errorString(), MessageWidget::Error);
+        return;
     }
 }
 
@@ -494,16 +528,19 @@ void EditEntryWidget::decryptPrivateKey()
 {
     OpenSSHKey key;
 
-    if (!getOpenSSHKey(key)) {
+    if (!getOpenSSHKey(key, true)) {
         return;
     }
 
-    if (!key.openPrivateKey(m_entry->password())) {
-        showMessage(key.errorString(), MessageWidget::Error);
-    } else {
+    if (!key.comment().isEmpty()) {
         m_sshAgentUi->commentTextLabel->setText(key.comment());
-        m_sshAgentUi->publicKeyEdit->document()->setPlainText(key.publicKey());
+    } else {
+        m_sshAgentUi->commentTextLabel->setText(tr("n/a"));
     }
+
+    m_sshAgentUi->fingerprintTextLabel->setText(key.fingerprint());
+    m_sshAgentUi->publicKeyEdit->document()->setPlainText(key.publicKey());
+    m_sshAgentUi->copyToClipboardButton->setEnabled(true);
 }
 
 void EditEntryWidget::copyPublicKey()
@@ -894,7 +931,7 @@ void EditEntryWidget::insertAttribute()
     int i = 1;
 
     while (m_entryAttributes->keys().contains(name)) {
-        name = QString("%1 %2").arg(tr("New attribute")).arg(i);
+        name = tr("New attribute %1").arg(i);
         i++;
     }
 
@@ -957,7 +994,7 @@ void EditEntryWidget::displayAttribute(QModelIndex index, bool showProtected)
     if (index.isValid()) {
         QString key = m_attributesModel->keyByIndex(index);
         if (showProtected) {
-            m_advancedUi->attributesEdit->setPlainText(tr("[PROTECTED]") + " " + tr("Press reveal to view or edit"));
+            m_advancedUi->attributesEdit->setPlainText(tr("[PROTECTED] Press reveal to view or edit"));
             m_advancedUi->attributesEdit->setEnabled(false);
             m_advancedUi->revealAttributeButton->setEnabled(true);
             m_advancedUi->protectAttributeButton->setChecked(true);
