@@ -24,8 +24,6 @@
 #include <QFileSystemWatcher>
 #include <QTimer>
 
-#include "core/Uuid.h"
-
 #include "gui/entry/EntryModel.h"
 #include "gui/MessageWidget.h"
 #include "gui/csvImport/CsvImportWizard.h"
@@ -201,7 +199,7 @@ private slots:
     // Database autoreload slots
     void onWatchedFileChanged();
     void reloadDatabaseFile();
-    void restoreGroupEntryFocus(Uuid groupUuid, Uuid EntryUuid);
+    void restoreGroupEntryFocus(const QUuid& groupUuid, const QUuid& EntryUuid);
     void unblockAutoReload();
 
 private:
@@ -231,8 +229,8 @@ private:
     Entry* m_newEntry;
     Group* m_newParent;
     QString m_filePath;
-    Uuid m_groupBeforeLock;
-    Uuid m_entryBeforeLock;
+    QUuid m_groupBeforeLock;
+    QUuid m_entryBeforeLock;
     MessageWidget* m_messageWidget;
     DetailsWidget* m_detailsView;
 

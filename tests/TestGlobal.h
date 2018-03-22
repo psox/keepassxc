@@ -18,22 +18,12 @@
 #ifndef KEEPASSXC_TESTGLOBAL_H
 #define KEEPASSXC_TESTGLOBAL_H
 
-#include "core/Uuid.h"
 #include "core/Group.h"
 
 #include <QTest>
 #include <QDateTime>
 
 namespace QTest {
-
-template<>
-inline char* toString(const Uuid& uuid)
-{
-    QByteArray ba = "Uuid(";
-    ba += uuid.toHex().toLatin1().constData();
-    ba += ")";
-    return qstrdup(ba.constData());
-}
 
 template<>
 inline char* toString(const Group::TriState& triState)

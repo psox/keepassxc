@@ -73,7 +73,7 @@ Group::~Group()
 Group* Group::createRecycleBin()
 {
     Group* recycleBin = new Group();
-    recycleBin->setUuid(Uuid::random());
+    recycleBin->setUuid(QUuid::createUuid());
     recycleBin->setName(tr("Recycle Bin"));
     recycleBin->setIcon(RecycleBinIconNumber);
     recycleBin->setSearchingEnabled(Group::Disable);
@@ -104,7 +104,7 @@ void Group::setUpdateTimeinfo(bool value)
     m_updateTimeinfo = value;
 }
 
-Uuid Group::uuid() const
+const QUuid& Group::uuid() const
 {
     return m_uuid;
 }
@@ -176,7 +176,7 @@ int Group::iconNumber() const
     return m_data.iconNumber;
 }
 
-Uuid Group::iconUuid() const
+const QUuid& Group::iconUuid() const
 {
     return m_data.customIcon;
 }
@@ -264,7 +264,7 @@ const CustomData* Group::customData() const
     return m_customData;
 }
 
-void Group::setUuid(const Uuid& uuid)
+void Group::setUuid(const QUuid& uuid)
 {
     set(m_uuid, uuid);
 }
@@ -287,13 +287,13 @@ void Group::setIcon(int iconNumber)
 
     if (m_data.iconNumber != iconNumber || !m_data.customIcon.isNull()) {
         m_data.iconNumber = iconNumber;
-        m_data.customIcon = Uuid();
+        m_data.customIcon = QUuid();
         emit modified();
         emit dataChanged(this);
     }
 }
 
-void Group::setIcon(const Uuid& uuid)
+void Group::setIcon(const QUuid& uuid)
 {
     Q_ASSERT(!uuid.isNull());
 
@@ -522,8 +522,9 @@ Entry* Group::findEntry(QString entryId)
     Q_ASSERT(!entryId.isNull());
 
     Entry* entry;
-    if (Uuid::isUuid(entryId)) {
-        entry = findEntryByUuid(Uuid::fromHex(entryId));
+    QUuid entryUuid = QUuid::fromRfc4122(QByteArray::fromHex(entryId.toLatin1()));
+    if (!entryUuid.isNull()) {
+        entry = findEntryByUuid(entryUuid);
         if (entry) {
             return entry;
         }
@@ -543,7 +544,7 @@ Entry* Group::findEntry(QString entryId)
     return nullptr;
 }
 
-Entry* Group::findEntryByUuid(const Uuid& uuid)
+Entry* Group::findEntryByUuid(const QUuid& uuid)
 {
     Q_ASSERT(!uuid.isNull());
     for (Entry* entry : entriesRecursive(false)) {
@@ -662,9 +663,9 @@ QList<Group*> Group::groupsRecursive(bool includeSelf)
     return groupList;
 }
 
-QSet<Uuid> Group::customIconsRecursive() const
+QSet<QUuid> Group::customIconsRecursive() const
 {
-    QSet<Uuid> result;
+    QSet<QUuid> result;
 
     if (!iconUuid().isNull()) {
         result.insert(iconUuid());
@@ -739,7 +740,7 @@ void Group::merge(const Group* other)
     emit modified();
 }
 
-Group* Group::findChildByUuid(const Uuid& uuid)
+Group* Group::findChildByUuid(const QUuid& uuid)
 {
     Q_ASSERT(!uuid.isNull());
     for (Group* group : groupsRecursive(true)) {
@@ -769,7 +770,7 @@ Group* Group::clone(Entry::CloneFlags entryFlags, Group::CloneFlags groupFlags) 
     clonedGroup->setUpdateTimeinfo(false);
 
     if (groupFlags & Group::CloneNewUuid) {
-        clonedGroup->setUuid(Uuid::random());
+        clonedGroup->setUuid(QUuid::createUuid());
     } else {
         clonedGroup->setUuid(this->uuid());
     }
@@ -1055,7 +1056,7 @@ Entry* Group::addEntryWithPath(QString entryPath)
 
     Entry* entry = new Entry();
     entry->setTitle(entryTitle);
-    entry->setUuid(Uuid::random());
+    entry->setUuid(QUuid::createUuid());
     entry->setGroup(group);
 
     return entry;

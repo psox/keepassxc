@@ -24,7 +24,6 @@
 
 #include "crypto/SymmetricCipherBackend.h"
 #include "format/KeePass2.h"
-#include "core/Uuid.h"
 
 class SymmetricCipher
 {
@@ -83,8 +82,8 @@ public:
     QString errorString() const;
     Algorithm algorithm() const;
 
-    static Algorithm cipherToAlgorithm(Uuid cipher);
-    static Uuid algorithmToCipher(Algorithm algo);
+    static Algorithm cipherToAlgorithm(const QUuid& cipher);
+    static QUuid algorithmToCipher(Algorithm algo);
     static int algorithmIvSize(Algorithm algo);
     static Mode algorithmMode(Algorithm algo);
 

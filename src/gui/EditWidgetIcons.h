@@ -22,10 +22,10 @@
 #include <QWidget>
 #include <QSet>
 #include <QUrl>
+#include <QUuid.h>
 
 #include "config-keepassx.h"
 #include "core/Global.h"
-#include "core/Uuid.h"
 #include "gui/MessageWidget.h"
 
 class Database;
@@ -40,7 +40,7 @@ struct IconStruct
 {
     IconStruct();
 
-    Uuid uuid;
+    QUuid uuid;
     int number;
 };
 
@@ -54,7 +54,7 @@ public:
 
     IconStruct state();
     void reset();
-    void load(const Uuid& currentUuid, Database* database, const IconStruct& iconStruct, const QString& url = "");
+    void load(const QUuid& currentUuid, Database* database, const IconStruct& iconStruct, const QString& url = "");
 
 public slots:
     void setUrl(const QString& url);
@@ -79,7 +79,7 @@ private slots:
 private:
     const QScopedPointer<Ui::EditWidgetIcons> m_ui;
     Database* m_database;
-    Uuid m_currentUuid;
+    QUuid m_currentUuid;
     QString m_url;
     DefaultIconModel* const m_defaultIconModel;
     CustomIconModel* const m_customIconModel;

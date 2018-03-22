@@ -36,7 +36,7 @@ public:
     bool isAgentRunning() const;
     bool addIdentity(OpenSSHKey& key, quint32 lifetime = 0, bool confirm = false) const;
     bool removeIdentity(OpenSSHKey& key) const;
-    void removeIdentityAtLock(const OpenSSHKey& key, const Uuid& uuid);
+    void removeIdentityAtLock(const OpenSSHKey& key, const QUuid& uuid);
 
 public slots:
     void databaseModeChanged(DatabaseWidget::Mode mode = DatabaseWidget::LockedMode);

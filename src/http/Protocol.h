@@ -46,7 +46,7 @@ class Request : public QObject
     Q_PROPERTY(bool    SortSelection READ sortSelection  WRITE setSortSelection)
     Q_PROPERTY(QString Login         READ login          WRITE setLogin        )
     Q_PROPERTY(QString Password      READ password       WRITE setPassword     )
-    Q_PROPERTY(QString Uuid          READ uuid           WRITE setUuid         )
+    Q_PROPERTY(QString QUuid         READ uuid           WRITE setUuid         )
     Q_PROPERTY(QString Url           READ url            WRITE setUrl          )
     Q_PROPERTY(QString SubmitUrl     READ submitUrl      WRITE setSubmitUrl    )
     Q_PROPERTY(QString Key           READ key            WRITE setKey          )
@@ -128,7 +128,7 @@ class Entry : public QObject
     Q_OBJECT
     Q_PROPERTY(QString Login         READ login          )
     Q_PROPERTY(QString Password      READ password       )
-    Q_PROPERTY(QString Uuid          READ uuid           )
+    Q_PROPERTY(QString QUuid         READ uuid           )
     Q_PROPERTY(QString Name          READ name           )
     Q_PROPERTY(QVariant StringFields READ getStringFields)
 

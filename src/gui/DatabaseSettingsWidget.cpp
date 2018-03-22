@@ -104,7 +104,7 @@ void DatabaseSettingsWidget::load(Database* db)
     for (auto& cipher: asConst(KeePass2::CIPHERS)) {
         m_uiEncryption->algorithmComboBox->addItem(cipher.second, cipher.first.toByteArray());
     }
-    int cipherIndex = m_uiEncryption->algorithmComboBox->findData(m_db->cipher().toByteArray());
+    int cipherIndex = m_uiEncryption->algorithmComboBox->findData(m_db->cipher().toRfc4122());
     if (cipherIndex > -1) {
         m_uiEncryption->algorithmComboBox->setCurrentIndex(cipherIndex);
     }
@@ -113,12 +113,12 @@ void DatabaseSettingsWidget::load(Database* db)
     m_uiEncryption->kdfComboBox->blockSignals(true);
     m_uiEncryption->kdfComboBox->clear();
     for (auto& kdf: asConst(KeePass2::KDFS)) {
-        m_uiEncryption->kdfComboBox->addItem(kdf.second, kdf.first.toByteArray());
+        m_uiEncryption->kdfComboBox->addItem(kdf.second, kdf.first.toRfc4122());
     }
     m_uiEncryption->kdfComboBox->blockSignals(false);
 
     auto kdfUuid = m_db->kdf()->uuid();
-    int kdfIndex = m_uiEncryption->kdfComboBox->findData(kdfUuid.toByteArray());
+    int kdfIndex = m_uiEncryption->kdfComboBox->findData(kdfUuid.toRfc4122());
     if (kdfIndex > -1) {
         m_uiEncryption->kdfComboBox->setCurrentIndex(kdfIndex);
         kdfChanged(kdfIndex);
@@ -143,7 +143,7 @@ void DatabaseSettingsWidget::load(Database* db)
 void DatabaseSettingsWidget::save()
 {
     // first perform safety check for KDF rounds
-    auto kdf = KeePass2::uuidToKdf(Uuid(m_uiEncryption->kdfComboBox->currentData().toByteArray()));
+    auto kdf = KeePass2::uuidToKdf(m_uiEncryption->kdfComboBox->currentData().value<QUuid>());
     if (kdf->uuid() == KeePass2::KDF_ARGON2 && m_uiEncryption->transformRoundsSpinBox->value() > 10000) {
         QMessageBox warning;
         warning.setIcon(QMessageBox::Warning);
@@ -211,7 +211,7 @@ void DatabaseSettingsWidget::save()
         truncateHistories();
     }
 
-    m_db->setCipher(Uuid(m_uiEncryption->algorithmComboBox->currentData().toByteArray()));
+    m_db->setCipher(m_uiEncryption->algorithmComboBox->currentData().value<QUuid>());
 
     // Save kdf parameters
     kdf->setRounds(m_uiEncryption->transformRoundsSpinBox->value());
@@ -248,7 +248,7 @@ void DatabaseSettingsWidget::transformRoundsBenchmark()
     m_uiEncryption->transformRoundsSpinBox->setFocus();
 
     // Create a new kdf with the current parameters
-    auto kdf = KeePass2::uuidToKdf(Uuid(m_uiEncryption->kdfComboBox->currentData().toByteArray()));
+    auto kdf = KeePass2::uuidToKdf(m_uiEncryption->kdfComboBox->currentData().value<QUuid>());
     kdf->setRounds(m_uiEncryption->transformRoundsSpinBox->value());
     if (kdf->uuid() == KeePass2::KDF_ARGON2) {
         auto argon2Kdf = kdf.staticCast<Argon2Kdf>();
@@ -280,7 +280,7 @@ void DatabaseSettingsWidget::truncateHistories()
 
 void DatabaseSettingsWidget::kdfChanged(int index)
 {
-    Uuid id(m_uiEncryption->kdfComboBox->itemData(index).toByteArray());
+    QUuid id(m_uiEncryption->kdfComboBox->itemData(index).value<QUuid>());
 
     bool memoryEnabled = id == KeePass2::KDF_ARGON2;
     m_uiEncryption->memoryUsageLabel->setEnabled(memoryEnabled);

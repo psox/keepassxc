@@ -37,7 +37,7 @@
 #endif
 
 IconStruct::IconStruct()
-    : uuid(Uuid())
+    : uuid(QUuid())
     , number(0)
 {
 }
@@ -101,10 +101,10 @@ IconStruct EditWidgetIcons::state()
 void EditWidgetIcons::reset()
 {
     m_database = nullptr;
-    m_currentUuid = Uuid();
+    m_currentUuid = QUuid();
 }
 
-void EditWidgetIcons::load(const Uuid& currentUuid, Database* database, const IconStruct& iconStruct, const QString& url)
+void EditWidgetIcons::load(const QUuid& currentUuid, Database* database, const IconStruct& iconStruct, const QString& url)
 {
     Q_ASSERT(database);
     Q_ASSERT(!currentUuid.isNull());
@@ -116,7 +116,7 @@ void EditWidgetIcons::load(const Uuid& currentUuid, Database* database, const Ic
     m_customIconModel->setIcons(database->metadata()->customIconsScaledPixmaps(),
                                 database->metadata()->customIconsOrder());
 
-    Uuid iconUuid = iconStruct.uuid;
+    QUuid iconUuid = iconStruct.uuid;
     if (iconUuid.isNull()) {
         int iconNumber = iconStruct.number;
         m_ui->defaultIconsView->setCurrentIndex(m_defaultIconModel->index(iconNumber, 0));
@@ -248,9 +248,9 @@ void EditWidgetIcons::addCustomIconFromFile()
 void EditWidgetIcons::addCustomIcon(const QImage& icon)
 {
     if (m_database) {
-        Uuid uuid = m_database->metadata()->findCustomIcon(icon);
+        QUuid uuid = m_database->metadata()->findCustomIcon(icon);
         if (uuid.isNull()) {
-            uuid = Uuid::random();
+            uuid = QUuid::createUuid();
             // Don't add an icon larger than 128x128, but retain original size if smaller
             if (icon.width() > 128 || icon.height() > 128) {
                 m_database->metadata()->addCustomIcon(uuid, icon.scaled(128, 128));
@@ -276,7 +276,7 @@ void EditWidgetIcons::removeCustomIcon()
     if (m_database) {
         QModelIndex index = m_ui->customIconsView->currentIndex();
         if (index.isValid()) {
-            Uuid iconUuid = m_customIconModel->uuidFromIndex(index);
+            QUuid iconUuid = m_customIconModel->uuidFromIndex(index);
 
             const QList<Entry*> allEntries = m_database->rootGroup()->entriesRecursive(true);
             QList<Entry*> entriesWithSameIcon;

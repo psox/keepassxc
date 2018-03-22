@@ -42,7 +42,7 @@ Database* Kdbx3Reader::readDatabaseImpl(QIODevice* device, const QByteArray& hea
     if (m_masterSeed.isEmpty() || m_encryptionIV.isEmpty()
         || m_streamStartBytes.isEmpty() || m_protectedStreamKey.isEmpty()
         || m_db->cipher().isNull()) {
-        raiseError("missing database headers");
+        raiseError(tr("missing database headers"));
         return nullptr;
     }
 

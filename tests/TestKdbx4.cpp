@@ -104,7 +104,7 @@ void TestKdbx4::writeKdbx(QIODevice* device, Database* db, bool& hasError, QStri
     QCOMPARE(writer.version(), KeePass2::FILE_VERSION_4);
 }
 
-Q_DECLARE_METATYPE(Uuid);
+Q_DECLARE_METATYPE(QUuid)
 void TestKdbx4::testFormat400()
 {
     QString filename = QString(KEEPASSX_TEST_DATA_DIR).append("/Format400.kdbx");
@@ -131,8 +131,8 @@ void TestKdbx4::testFormat400()
 
 void TestKdbx4::testFormat400Upgrade()
 {
-    QFETCH(Uuid, kdfUuid);
-    QFETCH(Uuid, cipherUuid);
+    QFETCH(QUuid, kdfUuid);
+    QFETCH(QUuid, cipherUuid);
     QFETCH(bool, addCustomData);
     QFETCH(quint32, expectedVersion);
 
@@ -183,8 +183,8 @@ void TestKdbx4::testFormat400Upgrade()
 
 void TestKdbx4::testFormat400Upgrade_data()
 {
-    QTest::addColumn<Uuid>("kdfUuid");
-    QTest::addColumn<Uuid>("cipherUuid");
+    QTest::addColumn<QUuid>("kdfUuid");
+    QTest::addColumn<QUuid>("cipherUuid");
     QTest::addColumn<bool>("addCustomData");
     QTest::addColumn<quint32>("expectedVersion");
 
@@ -255,20 +255,20 @@ void TestKdbx4::testUpgradeMasterKeyIntegrity()
     } else if (upgradeAction == "group-customdata") {
         auto group = new Group();
         group->setParent(db->rootGroup());
-        group->setUuid(Uuid::random());
+        group->setUuid(QUuid::createUuid());
         group->customData()->set("abc", "def");
     } else if (upgradeAction == "rootentry-customdata") {
         auto entry = new Entry();
         entry->setGroup(db->rootGroup());
-        entry->setUuid(Uuid::random());
+        entry->setUuid(QUuid::createUuid());
         entry->customData()->set("abc", "def");
     } else if (upgradeAction == "entry-customdata") {
         auto group = new Group();
         group->setParent(db->rootGroup());
-        group->setUuid(Uuid::random());
+        group->setUuid(QUuid::createUuid());
         auto entry = new Entry();
         entry->setGroup(group);
-        entry->setUuid(Uuid::random());
+        entry->setUuid(QUuid::createUuid());
         entry->customData()->set("abc", "def");
     } else {
         QFAIL(qPrintable(QString("Unknown action: %s").arg(upgradeAction)));
@@ -350,14 +350,14 @@ void TestKdbx4::testCustomData()
     // test copied custom group data
     auto* group = new Group();
     group->setParent(root);
-    group->setUuid(Uuid::random());
+    group->setUuid(QUuid::createUuid());
     group->customData()->copyDataFrom(root->customData());
     QCOMPARE(*group->customData(), *root->customData());
 
     // test copied custom entry data
     auto* entry = new Entry();
     entry->setGroup(group);
-    entry->setUuid(Uuid::random());
+    entry->setUuid(QUuid::createUuid());
     entry->customData()->copyDataFrom(group->customData());
     QCOMPARE(*entry->customData(), *root->customData());
 
