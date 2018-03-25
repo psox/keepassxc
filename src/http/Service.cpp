@@ -19,6 +19,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QUuid>
 
 #include "Service.h"
 #include "Protocol.h"
@@ -32,16 +33,11 @@
 #include "core/Group.h"
 #include "core/EntrySearcher.h"
 #include "core/Metadata.h"
-#include "core/Uuid.h"
 #include "core/PasswordGenerator.h"
 
 #include <algorithm>
 
-static const unsigned char KEEPASSHTTP_UUID_DATA[] = {
-    0x34, 0x69, 0x7a, 0x40, 0x8a, 0x5b, 0x41, 0xc0,
-    0x9f, 0x36, 0x89, 0x7d, 0x62, 0x3e, 0xcb, 0x31
-};
-static const Uuid KEEPASSHTTP_UUID = Uuid(QByteArray::fromRawData(reinterpret_cast<const char *>(KEEPASSHTTP_UUID_DATA), sizeof(KEEPASSHTTP_UUID_DATA)));
+static const QUuid KEEPASSHTTP_UUID = QUuid::fromRfc4122(QByteArray::fromHex("34697a408a5b41c09f36897d623ecb31"));
 static const char KEEPASSHTTP_NAME[] = "KeePassHttp Settings";
 static const char ASSOCIATE_KEY_PREFIX[] = "AES Key: ";
 static const char KEEPASSHTTP_GROUP_NAME[] = "KeePassHttp Passwords";   //Group where new KeePassHttp password are stored
@@ -126,7 +122,7 @@ QString Service::getDatabaseRootUuid()
     if (DatabaseWidget* dbWidget = m_dbTabWidget->currentDatabaseWidget())
         if (Database* db = dbWidget->database())
             if (Group* rootGroup = db->rootGroup())
-                return rootGroup->uuid().toHex();
+                return rootGroup->uuid().toRfc4122().toHex();
     return QString();
 }
 
@@ -135,7 +131,7 @@ QString Service::getDatabaseRecycleBinUuid()
     if (DatabaseWidget* dbWidget = m_dbTabWidget->currentDatabaseWidget())
         if (Database* db = dbWidget->database())
             if (Group* recycleBin = db->metadata()->recycleBin())
-                return recycleBin->uuid().toHex();
+                return recycleBin->uuid().toRfc4122().toHex();
     return QString();
 }
 
@@ -262,7 +258,7 @@ KeepassHttpProtocol::Entry Service::prepareEntry(const Entry* entry)
     KeepassHttpProtocol::Entry res(entry->resolveMultiplePlaceholders(entry->title()),
                                    entry->resolveMultiplePlaceholders(entry->username()),
                                    entry->resolveMultiplePlaceholders(entry->password()),
-                                   entry->uuid().toHex());
+                                   entry->uuid().toRfc4122().toHex());
     if (HttpSettings::supportKphFields()) {
         const EntryAttributes * attr = entry->attributes();
         const auto keys = attr->keys();
@@ -437,7 +433,7 @@ QList<KeepassHttpProtocol::Entry> Service::searchAllEntries(const QString &)
                 for (Entry* entry: entries) {
                     if (!entry->url().isEmpty() || QUrl(entry->title()).isValid()) {
                         result << KeepassHttpProtocol::Entry(entry->title(), entry->username(),
-                                                             QString(), entry->uuid().toHex());
+                                                             QString(), entry->uuid().toRfc4122().toHex());
                     }
                 }
             }
@@ -463,7 +459,7 @@ Group * Service::findCreateAddEntryGroup()
 
                 Group * group;
                 group = new Group();
-                group->setUuid(Uuid::random());
+                group->setUuid(QUuid::createUuid());
                 group->setName(groupName);
                 group->setIcon(KEEPASSHTTP_DEFAULT_ICON);
                 group->setParent(rootGroup);
@@ -476,7 +472,7 @@ void Service::addEntry(const QString &, const QString &login, const QString &pas
 {
     if (Group * group = findCreateAddEntryGroup()) {
         Entry * entry = new Entry();
-        entry->setUuid(Uuid::random());
+        entry->setUuid(QUuid::createUuid());
         entry->setTitle(QUrl(url).host());
         entry->setUrl(url);
         entry->setIcon(KEEPASSHTTP_DEFAULT_ICON);
@@ -500,7 +496,7 @@ void Service::updateEntry(const QString &, const QString &uuid, const QString &l
 {
     if (DatabaseWidget * dbWidget = m_dbTabWidget->currentDatabaseWidget())
         if (Database * db = dbWidget->database())
-            if (Entry * entry = db->resolveEntry(Uuid::fromHex(uuid))) {
+            if (Entry * entry = db->resolveEntry(QUuid::fromRfc4122(QByteArray::fromHex(uuid.toLatin1())))) {
                 QString u = entry->username();
                 if (u != login || entry->password() != password) {
                     //ShowNotification(QString("%0: You have an entry change prompt waiting, click to activate").arg(requestId));

@@ -21,6 +21,8 @@
 #include <QInputDialog>
 #include <QProgressDialog>
 #include <QMessageBox>
+#include <QUuid>
+
 #include "BrowserService.h"
 #include "BrowserSettings.h"
 #include "BrowserEntryConfig.h"
@@ -29,17 +31,10 @@
 #include "core/Group.h"
 #include "core/EntrySearcher.h"
 #include "core/Metadata.h"
-#include "core/Uuid.h"
 #include "core/PasswordGenerator.h"
 #include "gui/MainWindow.h"
 
-
-// de887cc3-0363-43b8-974b-5911b8816224
-static const unsigned char KEEPASSXCBROWSER_UUID_DATA[] = {
-    0xde, 0x88, 0x7c, 0xc3, 0x03, 0x63, 0x43, 0xb8,
-    0x97, 0x4b, 0x59, 0x11, 0xb8, 0x81, 0x62, 0x24
-};
-static const Uuid KEEPASSXCBROWSER_UUID = Uuid(QByteArray::fromRawData(reinterpret_cast<const char *>(KEEPASSXCBROWSER_UUID_DATA), sizeof(KEEPASSXCBROWSER_UUID_DATA)));
+static const QUuid KEEPASSXCBROWSER_UUID = QUuid::fromRfc4122(QByteArray::fromHex("de887cc3036343b8974b5911b8816224"));
 static const char KEEPASSXCBROWSER_NAME[] = "KeePassXC-Browser Settings";
 static const char ASSOCIATE_KEY_PREFIX[] = "Public Key: ";
 static const char KEEPASSXCBROWSER_GROUP_NAME[] = "KeePassXC-Browser Passwords";
@@ -115,7 +110,7 @@ QString BrowserService::getDatabaseRootUuid()
         return QString();
     }
 
-    return rootGroup->uuid().toHex();
+    return QString::fromLatin1(rootGroup->uuid().toRfc4122().toHex());
 }
 
 QString BrowserService::getDatabaseRecycleBinUuid()
@@ -129,7 +124,7 @@ QString BrowserService::getDatabaseRecycleBinUuid()
     if (!recycleBin) {
         return QString();
     }
-    return recycleBin->uuid().toHex();
+    return QString::fromLatin1(recycleBin->uuid().toRfc4122().toHex());
 }
 
 Entry* BrowserService::getConfigEntry(bool create)
@@ -291,7 +286,7 @@ void BrowserService::addEntry(const QString&, const QString& login, const QStrin
     }
 
     Entry* entry = new Entry();
-    entry->setUuid(Uuid::random());
+    entry->setUuid(QUuid::createUuid());
     entry->setTitle(QUrl(url).host());
     entry->setUrl(url);
     entry->setIcon(KEEPASSXCBROWSER_DEFAULT_ICON);
@@ -329,7 +324,7 @@ void BrowserService::updateEntry(const QString& id, const QString& uuid, const Q
         return;
     }
 
-    Entry* entry = db->resolveEntry(Uuid::fromHex(uuid));
+    Entry* entry = db->resolveEntry(QUuid::fromRfc4122(QByteArray::fromHex(uuid.toLatin1())));
     if (!entry) {
         return;
     }
@@ -576,7 +571,7 @@ QJsonObject BrowserService::prepareEntry(const Entry* entry)
     res["login"] = entry->resolveMultiplePlaceholders(entry->username());
     res["password"] = entry->resolveMultiplePlaceholders(entry->password());
     res["name"] = entry->resolveMultiplePlaceholders(entry->title());
-    res["uuid"] = entry->resolveMultiplePlaceholders(entry->uuid().toHex());
+    res["uuid"] = entry->resolveMultiplePlaceholders(QString::fromLatin1(entry->uuid().toRfc4122().toHex()));
 
     if (BrowserSettings::supportKphFields()) {
         const EntryAttributes* attr = entry->attributes();
@@ -632,7 +627,7 @@ Group* BrowserService::findCreateAddEntryGroup()
     }
 
     Group* group = new Group();
-    group->setUuid(Uuid::random());
+    group->setUuid(QUuid::createUuid());
     group->setName(groupName);
     group->setIcon(KEEPASSXCBROWSER_DEFAULT_ICON);
     group->setParent(rootGroup);
