@@ -22,7 +22,7 @@
 #include <QWidget>
 #include <QSet>
 #include <QUrl>
-#include <QUuid.h>
+#include <QUuid>
 
 #include "config-keepassx.h"
 #include "core/Global.h"

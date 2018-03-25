@@ -17,7 +17,7 @@
 
 #include "EditWidgetProperties.h"
 
-#include <QUuid.h>
+#include <QUuid>
 
 #include "ui_EditWidgetProperties.h"
 #include "MessageBox.h"
