@@ -20,7 +20,7 @@
 #define KEEPASSX_ENTRYSEARCHER_H
 
 #include <QString>
-
+#include <QRegularExpression>
 
 class Group;
 class Entry;
@@ -28,14 +28,40 @@ class Entry;
 class EntrySearcher
 {
 public:
-    QList<Entry*> search(const QString& searchTerm, const Group* group, Qt::CaseSensitivity caseSensitivity);
+    EntrySearcher(bool caseSensitive = false);
+
+    QList<Entry*> search(const QString& searchString, const Group* group);
+    QList<Entry*> searchEntries(const QString& searchString, const QList<Entry*>& entries);
+
+    void setCaseSensitive(bool state);
 
 private:
-    QList<Entry*> searchEntries(const QString& searchTerm, const Group* group, Qt::CaseSensitivity caseSensitivity);
-    QList<Entry*> matchEntry(const QString& searchTerm, Entry* entry, Qt::CaseSensitivity caseSensitivity);
-    bool wordMatch(const QString& word, Entry* entry, Qt::CaseSensitivity caseSensitivity);
-    bool matchGroup(const QString& searchTerm, const Group* group, Qt::CaseSensitivity caseSensitivity);
-    bool wordMatch(const QString& word, const Group* group, Qt::CaseSensitivity caseSensitivity);
+    bool searchEntryImpl(const QString& searchString, Entry* entry);
+
+    enum Field {
+        All,
+        Title,
+        Username,
+        Password,
+        Url,
+        Notes,
+        Attribute,
+        Attachment
+    };
+
+    struct SearchTerm
+    {
+        Field field;
+        QString word;
+        QRegularExpression regex;
+        bool exclude;
+    };
+
+    QList<SearchTerm*> parseSearchTerms(const QString& searchString);
+
+    bool m_caseSensitive;
+
+    friend class TestEntrySearcher;
 };
 
 #endif // KEEPASSX_ENTRYSEARCHER_H

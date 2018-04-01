@@ -97,7 +97,7 @@ DatabaseWidget::DatabaseWidget(Database* db, QWidget* parent)
     m_entryView = new EntryView(rightHandSideWidget);
     m_entryView->setObjectName("entryView");
     m_entryView->setContextMenuPolicy(Qt::CustomContextMenu);
-    m_entryView->setGroup(db->rootGroup());
+    m_entryView->displayGroup(db->rootGroup());
     connect(m_entryView, SIGNAL(customContextMenuRequested(QPoint)),
             SLOT(emitEntryContextMenuRequested(QPoint)));
 
@@ -306,7 +306,7 @@ bool DatabaseWidget::isUsernamesHidden() const
 /**
  * Set state of entry view 'Hide Usernames' setting
  */
-void DatabaseWidget::setUsernamesHidden(const bool hide)
+void DatabaseWidget::setUsernamesHidden(bool hide)
 {
     m_entryView->setUsernamesHidden(hide);
 }
@@ -322,7 +322,7 @@ bool DatabaseWidget::isPasswordsHidden() const
 /**
  * Set state of entry view 'Hide Passwords' setting
  */
-void DatabaseWidget::setPasswordsHidden(const bool hide)
+void DatabaseWidget::setPasswordsHidden(bool hide)
 {
     m_entryView->setPasswordsHidden(hide);
 }
@@ -1088,13 +1088,11 @@ void DatabaseWidget::search(const QString& searchtext)
 
     emit searchModeAboutToActivate();
 
-    Qt::CaseSensitivity caseSensitive = m_searchCaseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive;
-
     Group* searchGroup = m_searchLimitGroup ? currentGroup() : m_db->rootGroup();
 
-    QList<Entry*> searchResult = EntrySearcher().search(searchtext, searchGroup, caseSensitive);
+    QList<Entry*> searchResult = EntrySearcher(m_searchCaseSensitive).search(searchtext, searchGroup);
 
-    m_entryView->setEntryList(searchResult);
+    m_entryView->displaySearch(searchResult);
     m_lastSearchText = searchtext;
 
     // Display a label detailing our search results
@@ -1124,11 +1122,15 @@ void DatabaseWidget::setSearchLimitGroup(bool state)
 
 void DatabaseWidget::onGroupChanged(Group* group)
 {
-    // Intercept group changes if in search mode
-    if (isInSearchMode())
+    if (isInSearchMode() && m_searchLimitGroup) {
+        // Perform new search if we are limiting search to the current group
         search(m_lastSearchText);
-    else
-        m_entryView->setGroup(group);
+    } else if (isInSearchMode()) {
+        // Otherwise cancel search
+        emit clearSearch();
+    } else {
+        m_entryView->displayGroup(group);
+    }
 }
 
 QString DatabaseWidget::getCurrentSearch()
@@ -1143,7 +1145,7 @@ void DatabaseWidget::endSearch()
         emit listModeAboutToActivate();
 
         // Show the normal entry view of the current group
-        m_entryView->setGroup(currentGroup());
+        m_entryView->displayGroup(currentGroup());
 
         emit listModeActivated();
     }

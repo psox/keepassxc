@@ -91,9 +91,9 @@ public:
     QList<int> detailSplitterSizes() const;
     void setDetailSplitterSizes(const QList<int>& sizes);
     bool isUsernamesHidden() const;
-    void setUsernamesHidden(const bool hide);
+    void setUsernamesHidden(bool hide);
     bool isPasswordsHidden() const;
-    void setPasswordsHidden(const bool hide);
+    void setPasswordsHidden(bool hide);
     QByteArray entryViewState() const;
     bool setEntryViewState(const QByteArray& state) const;
     void clearAllWidgets();
@@ -130,7 +130,7 @@ signals:
     void mainSplitterSizesChanged();
     void detailSplitterSizesChanged();
     void entryViewStateChanged();
-    void updateSearch(QString text);
+    void clearSearch();
 
 public slots:
     void createEntry();

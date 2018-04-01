@@ -111,6 +111,7 @@ void SearchWidget::connectSignals(SignalMultiplexer& mx)
     mx.connect(this, SIGNAL(limitGroupChanged(bool)), SLOT(setSearchLimitGroup(bool)));
     mx.connect(this, SIGNAL(copyPressed()), SLOT(copyPassword()));
     mx.connect(this, SIGNAL(downPressed()), SLOT(setFocus()));
+    mx.connect(SIGNAL(clearSearch()), m_ui->searchEdit, SLOT(clear()));
     mx.connect(m_ui->searchEdit, SIGNAL(returnPressed()), SLOT(switchToEntryEdit()));
 }
 
@@ -134,7 +135,7 @@ void SearchWidget::startSearchTimer()
     if (!m_searchTimer->isActive()) {
         m_searchTimer->stop();
     }
-    m_searchTimer->start(100);
+    m_searchTimer->start(300);
 }
 
 void SearchWidget::startSearch()

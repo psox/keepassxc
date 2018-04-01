@@ -35,6 +35,7 @@ private slots:
     void testAndConcatenationInSearch();
     void testSearch();
     void testAllAttributesAreSearched();
+    void testSearchTermParser();
 
 private:
     Group* m_groupRoot;
