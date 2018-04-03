@@ -146,25 +146,16 @@ void EntryView::keyPressEvent(QKeyEvent* event)
     QTreeView::keyPressEvent(event);
 }
 
-void EntryView::displayGroup(Group* group)
+void EntryView::setGroup(Group* group)
 {
     m_model->setGroup(group);
-    header()->hideSection(EntryModel::ParentGroup);
     setFirstEntryActive();
-    m_inSearchMode = false;
 }
 
-void EntryView::displaySearch(const QList<Entry*>& entries)
+void EntryView::setEntryList(const QList<Entry*>& entries)
 {
-    m_model->setEntries(entries);
-    header()->showSection(EntryModel::ParentGroup);
-
-    // Reset sort column to 'Group', overrides DatabaseWidgetStateSync
-    m_sortModel->sort(EntryModel::ParentGroup, Qt::AscendingOrder);
-    sortByColumn(EntryModel::ParentGroup, Qt::AscendingOrder);
-
+    m_model->setEntryList(entries);
     setFirstEntryActive();
-    m_inSearchMode = true;
 }
 
 void EntryView::setFirstEntryActive()
@@ -231,6 +222,39 @@ Entry* EntryView::entryFromIndex(const QModelIndex& index)
 }
 
 /**
+ * Switch to list mode, i.e. list entries of group
+ */
+void EntryView::switchToListMode()
+{
+    if (!m_inSearchMode) {
+        return;
+    }
+
+    header()->hideSection(EntryModel::ParentGroup);
+    m_inSearchMode = false;
+}
+
+/**
+ * Switch to search mode, i.e. list search results
+ */
+void EntryView::switchToSearchMode()
+{
+    if (m_inSearchMode) {
+        return;
+    }
+
+    header()->showSection(EntryModel::ParentGroup);
+
+    // Always set sorting to column 'Group', as it does not feel right to
+    // have the last known sort configuration of search view restored by
+    // 'DatabaseWidgetStateSync', which is what happens without this
+    m_sortModel->sort(EntryModel::ParentGroup, Qt::AscendingOrder);
+    sortByColumn(EntryModel::ParentGroup, Qt::AscendingOrder);
+
+    m_inSearchMode = true;
+}
+
+/**
  * Get current state of 'Hide Usernames' setting (NOTE: just pass-through for
  * m_model)
  */
@@ -242,7 +266,7 @@ bool EntryView::isUsernamesHidden() const
 /**
  * Set state of 'Hide Usernames' setting (NOTE: just pass-through for m_model)
  */
-void EntryView::setUsernamesHidden(bool hide)
+void EntryView::setUsernamesHidden(const bool hide)
 {
     m_model->setUsernamesHidden(hide);
 }
@@ -259,7 +283,7 @@ bool EntryView::isPasswordsHidden() const
 /**
  * Set state of 'Hide Passwords' setting (NOTE: just pass-through for m_model)
  */
-void EntryView::setPasswordsHidden(bool hide)
+void EntryView::setPasswordsHidden(const bool hide)
 {
     m_model->setPasswordsHidden(hide);
 }

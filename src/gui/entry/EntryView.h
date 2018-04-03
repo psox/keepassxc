@@ -39,18 +39,19 @@ public:
     Entry* currentEntry();
     void setCurrentEntry(Entry* entry);
     Entry* entryFromIndex(const QModelIndex& index);
+    void setEntryList(const QList<Entry*>& entries);
     bool inSearchMode();
     int numberOfSelectedEntries();
     void setFirstEntryActive();
     bool isUsernamesHidden() const;
-    void setUsernamesHidden(bool hide);
+    void setUsernamesHidden(const bool hide);
     bool isPasswordsHidden() const;
-    void setPasswordsHidden(bool hide);
+    void setPasswordsHidden(const bool hide);
     QByteArray viewState() const;
     bool setViewState(const QByteArray& state);
 
-    void displayGroup(Group* group);
-    void displaySearch(const QList<Entry*>& entries);
+public slots:
+    void setGroup(Group* group);
 
 signals:
     void entryActivated(Entry* entry, EntryModel::ModelColumn column);
@@ -64,6 +65,8 @@ protected:
 private slots:
     void emitEntryActivated(const QModelIndex& index);
     void emitEntryPressed(const QModelIndex& index);
+    void switchToListMode();
+    void switchToSearchMode();
     void showHeaderMenu(const QPoint& position);
     void toggleColumnVisibility(QAction* action);
     void fitColumnsToWindow();
