@@ -306,7 +306,7 @@ void TestModified::testHistoryItems()
     entry->setTitle("b");
     entry->endUpdate();
     QCOMPARE(entry->historyItems().size(), ++historyItemsSize);
-    auto *historyEntry = entry->historyItems().at(historyItemsSize - 1);
+    auto* historyEntry = entry->historyItems().at(historyItemsSize - 1);
     QCOMPARE(historyEntry->title(), QString("a"));
     QCOMPARE(historyEntry->uuid(), entry->uuid());
     QCOMPARE(historyEntry->tags(), entry->tags());
@@ -474,7 +474,6 @@ void TestModified::testHistoryMaxSize()
     entry1->endUpdate();
     QCOMPARE(entry1->attachments()->attachmentsSize(), 6000 + key.size());
     QCOMPARE(entry1->historyItems().size(), 4);
-
 
     auto entry2 = new Entry();
     entry2->setGroup(db->rootGroup());

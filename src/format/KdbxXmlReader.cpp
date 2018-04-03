@@ -17,16 +17,16 @@
 
 #include "KdbxXmlReader.h"
 #include "KeePass2RandomStream.h"
-#include "core/Global.h"
-#include "core/Tools.h"
-#include "core/Entry.h"
-#include "core/Group.h"
 #include "core/DatabaseIcons.h"
 #include "core/Endian.h"
+#include "core/Entry.h"
+#include "core/Global.h"
+#include "core/Group.h"
+#include "core/Tools.h"
 #include "streams/QtIOCompressor"
 
-#include <QFile>
 #include <QBuffer>
+#include <QFile>
 
 #define UUID_LENGTH 16
 
@@ -116,13 +116,11 @@ void KdbxXmlReader::readDatabase(QIODevice* device, Database* db, KeePass2Random
     }
 
     if (!m_tmpParent->children().isEmpty()) {
-        qWarning("KdbxXmlReader::readDatabase: found %d invalid group reference(s)",
-                 m_tmpParent->children().size());
+        qWarning("KdbxXmlReader::readDatabase: found %d invalid group reference(s)", m_tmpParent->children().size());
     }
 
     if (!m_tmpParent->entries().isEmpty()) {
-        qWarning("KdbxXmlReader::readDatabase: found %d invalid entry reference(s)",
-                 m_tmpParent->children().size());
+        qWarning("KdbxXmlReader::readDatabase: found %d invalid entry reference(s)", m_tmpParent->children().size());
     }
 
     const QSet<QString> poolKeys = m_binaryPool.keys().toSet();
@@ -138,7 +136,7 @@ void KdbxXmlReader::readDatabase(QIODevice* device, Database* db, KeePass2Random
         qWarning("KdbxXmlReader::readDatabase: found unused key \"%s\"", qPrintable(key));
     }
 
-    QHash<QString, QPair<Entry*, QString> >::const_iterator i;
+    QHash<QString, QPair<Entry*, QString>>::const_iterator i;
     for (i = m_binaryMap.constBegin(); i != m_binaryMap.constEnd(); ++i) {
         const QPair<Entry*, QString>& target = i.value();
         target.first->attachments()->set(target.second, m_binaryPool[i.key()]);
@@ -193,8 +191,7 @@ QString KdbxXmlReader::errorString() const
 
 bool KdbxXmlReader::isTrueValue(const QStringRef& value)
 {
-    return value.compare(QLatin1String("true"), Qt::CaseInsensitive) == 0
-        || value == "1";
+    return value.compare(QLatin1String("true"), Qt::CaseInsensitive) == 0 || value == "1";
 }
 
 void KdbxXmlReader::raiseError(const QString& errorMessage)
@@ -388,12 +385,10 @@ void KdbxXmlReader::parseBinaries()
 
         QXmlStreamAttributes attr = m_xml.attributes();
         QString id = attr.value("ID").toString();
-        QByteArray data = isTrueValue(attr.value("Compressed"))
-            ? readCompressedBinary() : readBinary();
+        QByteArray data = isTrueValue(attr.value("Compressed")) ? readCompressedBinary() : readBinary();
 
         if (m_binaryPool.contains(id)) {
-            qWarning("KdbxXmlReader::parseBinaries: overwriting binary item \"%s\"",
-                     qPrintable(id));
+            qWarning("KdbxXmlReader::parseBinaries: overwriting binary item \"%s\"", qPrintable(id));
         }
 
         m_binaryPool.insert(id, data);
@@ -1195,4 +1190,3 @@ void KdbxXmlReader::skipCurrentElement()
     qWarning("KdbxXmlReader::skipCurrentElement: skip element \"%s\"", qPrintable(m_xml.name().toString()));
     m_xml.skipCurrentElement();
 }
-

@@ -30,8 +30,7 @@ int DefaultIconModel::rowCount(const QModelIndex& parent) const
 {
     if (!parent.isValid()) {
         return DatabaseIcons::IconCount;
-    }
-    else {
+    } else {
         return 0;
     }
 }
@@ -71,8 +70,7 @@ int CustomIconModel::rowCount(const QModelIndex& parent) const
 {
     if (!parent.isValid()) {
         return m_icons.size();
-    }
-    else {
+    } else {
         return 0;
     }
 }
@@ -103,8 +101,7 @@ QModelIndex CustomIconModel::indexFromUuid(const QUuid& uuid) const
     int idx = m_iconsOrder.indexOf(uuid);
     if (idx > -1) {
         return index(idx, 0);
-    }
-    else {
+    } else {
         return QModelIndex();
     }
 }

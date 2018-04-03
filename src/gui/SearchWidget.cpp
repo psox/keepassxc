@@ -173,7 +173,6 @@ void SearchWidget::setLimitGroup(bool state)
     updateLimitGroup();
 }
 
-
 void SearchWidget::searchFocus()
 {
     m_ui->searchEdit->setFocus();

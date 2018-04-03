@@ -20,17 +20,18 @@
 
 #include "core/Group.h"
 
-EntrySearcher::EntrySearcher(bool caseSensitive) :
-    m_caseSensitive(caseSensitive)
+QList<Entry*> EntrySearcher::search(const QString& searchTerm, const Group* group, Qt::CaseSensitivity caseSensitivity)
 {
 }
 
-QList<Entry*> EntrySearcher::search(const QString& searchString, const Group* group)
+QList<Entry*>
+EntrySearcher::searchEntries(const QString& searchTerm, const Group* group, Qt::CaseSensitivity caseSensitivity)
 {
     QList<Entry*> results;
 
-    if (group->resolveSearchingEnabled()) {
-        results.append(searchEntries(searchString, group->entries()));
+    const QList<Entry*> entryList = group->entries();
+    for (Entry* entry : entryList) {
+        searchResult.append(matchEntry(searchTerm, entry, caseSensitivity));
     }
 
     for (Group* childGroup : group->children()) {
@@ -42,7 +43,7 @@ QList<Entry*> EntrySearcher::search(const QString& searchString, const Group* gr
     return results;
 }
 
-QList<Entry*> EntrySearcher::searchEntries(const QString& searchString, const QList<Entry*>& entries)
+QList<Entry*> EntrySearcher::matchEntry(const QString& searchTerm, Entry* entry, Qt::CaseSensitivity caseSensitivity)
 {
     QList<Entry*> results;
     for (Entry* entry : entries) {
@@ -55,7 +56,10 @@ QList<Entry*> EntrySearcher::searchEntries(const QString& searchString, const QL
 
 void EntrySearcher::setCaseSensitive(bool state)
 {
-    m_caseSensitive = state;
+    return entry->resolvePlaceholder(entry->title()).contains(word, caseSensitivity)
+           || entry->resolvePlaceholder(entry->username()).contains(word, caseSensitivity)
+           || entry->resolvePlaceholder(entry->url()).contains(word, caseSensitivity)
+           || entry->resolvePlaceholder(entry->notes()).contains(word, caseSensitivity);
 }
 
 bool EntrySearcher::searchEntryImpl(const QString& searchString, Entry* entry)
@@ -108,79 +112,5 @@ bool EntrySearcher::searchEntryImpl(const QString& searchString, Entry* entry)
 
 QList<EntrySearcher::SearchTerm*> EntrySearcher::parseSearchTerms(const QString& searchString)
 {
-    auto terms = QList<SearchTerm*>();
-    // Group 1 = modifiers, Group 2 = field, Group 3 = quoted string, Group 4 = unquoted string
-    auto termParser = QRegularExpression(R"re(([-*+]+)?(?:(\w*):)?(?:(?=")"((?:[^"\\]|\\.)*)"|([^ ]*))( |$))re");
-    // Escape common regex symbols except for *, ?, and |
-    auto regexEscape = QRegularExpression(R"re(([-[\]{}()+.,\\\/^$#]))re");
-
-    auto results = termParser.globalMatch(searchString);
-    while (results.hasNext()) {
-        auto result = results.next();
-        auto term = new SearchTerm();
-
-        // Quoted string group
-        term->word = result.captured(3);
-
-        // If empty, use the unquoted string group
-        if (term->word.isEmpty()) {
-            term->word = result.captured(4);
-        }
-
-        // If still empty, ignore this match
-        if (term->word.isEmpty()) {
-            delete term;
-            continue;
-        }
-
-        QString regex = term->word;
-
-        // Wildcard support (*, ?, |)
-        if (!result.captured(1).contains("*")) {
-            regex.replace(regexEscape, "\\\\1");
-            regex.replace("**", "*");
-            regex.replace("*", ".*");
-            regex.replace("?", ".");
-        }
-
-        term->regex = QRegularExpression(regex);
-        if (!m_caseSensitive) {
-            term->regex.setPatternOptions(QRegularExpression::CaseInsensitiveOption);
-        }
-
-        // Exact modifier
-        if (result.captured(1).contains("+")) {
-            term->regex.setPattern("^" + term->regex.pattern() + "$");
-        }
-
-        // Exclude modifier
-        term->exclude = result.captured(1).contains("-");
-
-        // Determine the field to search
-        QString field = result.captured(2);
-        if (!field.isEmpty()) {
-            auto cs = Qt::CaseInsensitive;
-            if (field.compare("title", cs) == 0) {
-                term->field = Field::Title;
-            } else if (field.startsWith("user", cs)) {
-                term->field = Field::Username;
-            } else if (field.startsWith("pass", cs)) {
-                term->field = Field::Password;
-            } else if (field.compare("url", cs) == 0) {
-                term->field = Field::Url;
-            } else if (field.compare("notes", cs) == 0) {
-                term->field = Field::Notes;
-            } else if (field.startsWith("attr", cs)) {
-                term->field = Field::Attribute;
-            } else if (field.startsWith("attach", cs)) {
-                term->field = Field::Attachment;
-            } else {
-                term->field = Field::All;
-            }
-        }
-
-        terms.append(term);
-    }
-
-    return terms;
+    return group->name().contains(word, caseSensitivity) || group->notes().contains(word, caseSensitivity);
 }

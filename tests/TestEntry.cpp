@@ -343,12 +343,16 @@ void TestEntry::testResolveReferencePlaceholders()
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@P:%1}").arg(entry1->password())), entry1->title());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@A:%1}").arg(entry1->url())), entry1->title());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@N:%1}").arg(entry1->notes())), entry1->title());
-    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@O:%1}").arg(entry1->attributes()->value("CustomAttribute1"))), entry1->title());
+    QCOMPARE(tstEntry->resolveMultiplePlaceholders(
+                 QString("{REF:T@O:%1}").arg(entry1->attributes()->value("CustomAttribute1"))),
+             entry1->title());
 
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@I:%1}").arg(QString(entry1->uuid().toRfc4122().toHex()))), entry1->title());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@T:%1}").arg(entry1->title())), entry1->title());
-    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:U@U:%1}").arg(entry1->username())), entry1->username());
-    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:P@P:%1}").arg(entry1->password())), entry1->password());
+    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:U@U:%1}").arg(entry1->username())),
+             entry1->username());
+    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:P@P:%1}").arg(entry1->password())),
+             entry1->password());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:A@A:%1}").arg(entry1->url())), entry1->url());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:N@N:%1}").arg(entry1->notes())), entry1->notes());
 
@@ -358,11 +362,15 @@ void TestEntry::testResolveReferencePlaceholders()
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@P:%1}").arg(entry2->password())), entry2->title());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@A:%1}").arg(entry2->url())), entry2->title());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@N:%1}").arg(entry2->notes())), entry2->title());
-    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@O:%1}").arg(entry2->attributes()->value("CustomAttribute2"))), entry2->title());
+    QCOMPARE(tstEntry->resolveMultiplePlaceholders(
+                 QString("{REF:T@O:%1}").arg(entry2->attributes()->value("CustomAttribute2"))),
+             entry2->title());
 
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:T@T:%1}").arg(entry2->title())), entry2->title());
-    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:U@U:%1}").arg(entry2->username())), entry2->username());
-    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:P@P:%1}").arg(entry2->password())), entry2->password());
+    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:U@U:%1}").arg(entry2->username())),
+             entry2->username());
+    QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:P@P:%1}").arg(entry2->password())),
+             entry2->password());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:A@A:%1}").arg(entry2->url())), entry2->url());
     QCOMPARE(tstEntry->resolveMultiplePlaceholders(QString("{REF:N@N:%1}").arg(entry2->notes())), entry2->notes());
 
@@ -420,29 +428,29 @@ void TestEntry::testResolveNonIdPlaceholdersToUuid()
         const Entry* referencedEntry = nullptr;
         QString newEntryNotesRaw("{REF:I@%1:%2}");
 
-        switch(searchIn.toLatin1()) {
-            case 'T':
-                referencedEntry = referencedEntryTitle;
-                newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->title());
-                break;
-            case 'U':
-                referencedEntry = referencedEntryUsername;
-                newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->username());
-                break;
-            case 'P':
-                referencedEntry = referencedEntryPassword;
-                newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->password());
-                break;
-            case 'A':
-                referencedEntry = referencedEntryUrl;
-                newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->url());
-                break;
-            case 'N':
-                referencedEntry = referencedEntryNotes;
-                newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->notes());
-                break;
-            default:
-                break;
+        switch (searchIn.toLatin1()) {
+        case 'T':
+            referencedEntry = referencedEntryTitle;
+            newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->title());
+            break;
+        case 'U':
+            referencedEntry = referencedEntryUsername;
+            newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->username());
+            break;
+        case 'P':
+            referencedEntry = referencedEntryPassword;
+            newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->password());
+            break;
+        case 'A':
+            referencedEntry = referencedEntryUrl;
+            newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->url());
+            break;
+        case 'N':
+            referencedEntry = referencedEntryNotes;
+            newEntryNotesRaw = newEntryNotesRaw.arg(searchIn, referencedEntry->notes());
+            break;
+        default:
+            break;
         }
 
         auto* newEntry = new Entry();

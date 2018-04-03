@@ -20,7 +20,6 @@
 #define KEEPASSX_ENTRYSEARCHER_H
 
 #include <QString>
-#include <QRegularExpression>
 
 class Group;
 class Entry;

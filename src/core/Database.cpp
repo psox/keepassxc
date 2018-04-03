@@ -33,8 +33,8 @@
 #include "format/KeePass2.h"
 #include "format/KeePass2Reader.h"
 #include "format/KeePass2Writer.h"
-#include "keys/PasswordKey.h"
 #include "keys/FileKey.h"
+#include "keys/PasswordKey.h"
 
 QHash<QUuid, Database*> Database::m_uuidMap;
 
@@ -130,7 +130,8 @@ Entry* Database::findEntryRecursive(const QUuid& uuid, Group* group)
 
 Entry* Database::findEntryRecursive(const QString& text, EntryReferenceType referenceType, Group* group)
 {
-    Q_ASSERT_X(referenceType != EntryReferenceType::Unknown, "Database::findEntryRecursive",
+    Q_ASSERT_X(referenceType != EntryReferenceType::Unknown,
+               "Database::findEntryRecursive",
                "Can't search entry with \"referenceType\" parameter equal to \"Unknown\"");
 
     bool found = false;
@@ -336,7 +337,6 @@ void Database::setPublicCustomData(const QVariantMap& customData)
     m_data.publicCustomData = customData;
 }
 
-
 void Database::createRecycleBin()
 {
     Group* recycleBin = Group::createRecycleBin();
@@ -407,7 +407,6 @@ void Database::setEmitModified(bool value)
 
     m_emitModified = value;
 }
-
 
 const QUuid& Database::uuid()
 {

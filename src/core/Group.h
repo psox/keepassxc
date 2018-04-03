@@ -24,9 +24,9 @@
 #include <QPixmapCache>
 #include <QPointer>
 
+#include "core/CustomData.h"
 #include "core/Database.h"
 #include "core/Entry.h"
-#include "core/CustomData.h"
 #include "core/TimeInfo.h"
 
 class Group : public QObject
@@ -34,14 +34,26 @@ class Group : public QObject
     Q_OBJECT
 
 public:
-    enum TriState { Inherit, Enable, Disable };
-    enum MergeMode { ModeInherit, KeepBoth, KeepNewer, KeepExisting };
+    enum TriState
+    {
+        Inherit,
+        Enable,
+        Disable
+    };
+    enum MergeMode
+    {
+        ModeInherit,
+        KeepBoth,
+        KeepNewer,
+        KeepExisting
+    };
 
-    enum CloneFlag {
-        CloneNoFlags        = 0,
-        CloneNewUuid        = 1,  // generate a random uuid for the clone
-        CloneResetTimeInfo  = 2,  // set all TimeInfo attributes to the current time
-        CloneIncludeEntries = 4,  // clone the group entries
+    enum CloneFlag
+    {
+        CloneNoFlags = 0,
+        CloneNewUuid = 1, // generate a random uuid for the clone
+        CloneResetTimeInfo = 2, // set all TimeInfo attributes to the current time
+        CloneIncludeEntries = 4, // clone the group entries
     };
     Q_DECLARE_FLAGS(CloneFlags, CloneFlag)
 

@@ -19,8 +19,8 @@
 
 #include <QUuid>
 
-#include "ui_EditWidgetProperties.h"
 #include "MessageBox.h"
+#include "ui_EditWidgetProperties.h"
 
 EditWidgetProperties::EditWidgetProperties(QWidget* parent)
     : QWidget(parent)
@@ -32,7 +32,8 @@ EditWidgetProperties::EditWidgetProperties(QWidget* parent)
     m_ui->removeCustomDataButton->setEnabled(false);
     m_ui->customDataTable->setModel(m_customDataModel);
 
-    connect(m_ui->customDataTable->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+    connect(m_ui->customDataTable->selectionModel(),
+            SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
             SLOT(toggleRemoveButton(QItemSelection)));
     connect(m_ui->removeCustomDataButton, SIGNAL(clicked()), SLOT(removeSelectedPluginData()));
 }
@@ -69,10 +70,11 @@ const CustomData* EditWidgetProperties::customData() const
 void EditWidgetProperties::removeSelectedPluginData()
 {
     if (QMessageBox::Yes != MessageBox::question(this,
-            tr("Delete plugin data?"),
-            tr("Do you really want to delete the selected plugin data?\n"
-               "This may cause the affected plugins to malfunction."),
-            QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel)) {
+                                                 tr("Delete plugin data?"),
+                                                 tr("Do you really want to delete the selected plugin data?\n"
+                                                    "This may cause the affected plugins to malfunction."),
+                                                 QMessageBox::Yes | QMessageBox::Cancel,
+                                                 QMessageBox::Cancel)) {
         return;
     }
 
@@ -98,9 +100,8 @@ void EditWidgetProperties::updateModel()
     m_customDataModel->setHorizontalHeaderLabels({tr("Key"), tr("Value")});
 
     for (const QString& key : m_customData->keys()) {
-        m_customDataModel->appendRow(QList<QStandardItem*>()
-                                         << new QStandardItem(key)
-                                         << new QStandardItem(m_customData->value(key)));
+        m_customDataModel->appendRow(QList<QStandardItem*>() << new QStandardItem(key)
+                                                             << new QStandardItem(m_customData->value(key)));
     }
 
     m_ui->removeCustomDataButton->setEnabled(false);
