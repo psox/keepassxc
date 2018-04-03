@@ -128,7 +128,6 @@ namespace KeePass2
     QSharedPointer<Kdf> kdfFromParameters(const QVariantMap& p);
     QVariantMap kdfToParameters(QSharedPointer<Kdf> kdf);
     QSharedPointer<Kdf> uuidToKdf(const QUuid& uuid);
-    QUuid kdfToUuid(QSharedPointer<Kdf> kdf);
     ProtectedStreamAlgo idToProtectedStreamAlgo(quint32 id);
 
 } // namespace KeePass2
